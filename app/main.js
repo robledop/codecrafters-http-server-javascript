@@ -1,5 +1,6 @@
 import {createServer} from "net";
-import {readFileSync, existsSync, writeFileSync} from "fs";
+import {existsSync, readFileSync, writeFileSync} from "fs";
+import * as zlib from "zlib";
 
 let directory = null;
 if (process.argv.length === 4 && process.argv[2] === "--directory") {
@@ -21,7 +22,7 @@ const server = createServer((socket) => {
         socket.close();
     })
 
-    socket.on("data", (data) => {
+    socket.on("data", async (data) => {
         console.log("RECEIVED:", data.toString());
 
         const lines = data.toString().split("\r\n");
@@ -30,7 +31,7 @@ const server = createServer((socket) => {
 
         console.log(`METHOD: ${method}, PATH: ${path}, PROTOCOL: ${protocol}`);
 
-        let response;
+        let response = null;
         if (method === "GET") {
             if (path === "/") {
                 response = "HTTP/1.1 200 OK\r\n\r\n";
@@ -40,7 +41,12 @@ const server = createServer((socket) => {
                 if (acceptEncodingLine) {
                     const acceptEncodings = acceptEncodingLine.substring(17).split(', ');
                     if (acceptEncodings.some(x => x === "gzip")) {
-                        response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
+                        const encoded = zlib.gzipSync(message);
+                        console.log("MESSAGE:", message, "GZIP:", encoded);
+                        let headers = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: ${encoded.length}\r\n\r\n`;
+                        socket.write(headers);
+                        socket.write(encoded);
+                        socket.end();
                     } else {
                         response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
                     }
@@ -79,7 +85,10 @@ const server = createServer((socket) => {
             }
         }
 
-        socket.write(response);
+        if (response != null) {
+            socket.write(response);
+            socket.end();
+        }
     });
 });
 
