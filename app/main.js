@@ -1,4 +1,14 @@
 import {createServer} from "net";
+import {readFileSync, existsSync} from "fs";
+
+let directory = null;
+if (process.argv.length === 4 && process.argv[2] === "--directory") {
+    directory = process.argv[3];
+}
+
+if (directory !== null) {
+    console.log(`Serving files from ${directory}`);
+}
 
 const server = createServer((socket) => {
     socket.on("close", () => {
@@ -30,6 +40,19 @@ const server = createServer((socket) => {
             const userAgentLine = lines.find(x => x.startsWith("User-Agent: "));
             const userAgent = userAgentLine.substring(12);
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`;
+        } else if (path.startsWith("/files/")) {
+            if (directory === null) {
+                response = "HTTP/1.1 404 Not Found\r\n\r\n";
+            } else {
+                const file_name = path.substring(7);
+                const file_path = `${directory}/${file_name}`;
+                if (existsSync(file_path)) {
+                    const file = readFileSync(file_path);
+                    response = `HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: ${file.length}\r\n\r\n${file}`;
+                } else {
+                    response = "HTTP/1.1 404 Not Found\r\n\r\n";
+                }
+            }
 
         } else {
             response = "HTTP/1.1 404 Not Found\r\n\r\n";
