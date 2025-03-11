@@ -38,13 +38,13 @@ const server = createServer((socket) => {
                 const message = path.substring(6);
                 const acceptEncodingLine = lines.find(x => x.startsWith("Accept-Encoding: "));
                 if (acceptEncodingLine) {
-                    const acceptEncoding = acceptEncodingLine.substring(17);
-                    if (acceptEncoding === "gzip") {
+                    const acceptEncodings = acceptEncodingLine.substring(17).split(', ');
+                    if (acceptEncodings.some(x => x === "gzip")) {
                         response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
                     } else {
                         response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
                     }
-                }else{
+                } else {
                     response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
                 }
             } else if (path === "/user-agent") {
