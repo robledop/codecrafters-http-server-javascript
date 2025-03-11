@@ -59,16 +59,12 @@ const server = createServer((socket) => {
             }
         } else if (method === "POST") {
             if (path.startsWith("/files/")) {
-                const contentLengthLine = lines.find(x => x.startsWith("Content-Length: "));
-                const contentLength = parseInt(contentLengthLine.substring(16));
-
-                const body = data.toString().substring(data.toString().indexOf("\r\n\r\n") + 4);
                 const file_name = path.substring(7);
                 const file_path = `${directory}/${file_name}`;
-                
-                console.log(`Writing to ${file_path}, Content: ${body}`);
+                const body = data.toString().substring(data.toString().indexOf("\r\n\r\n") + 4);
+
                 writeFileSync(file_path, body);
-                
+
                 response = "HTTP/1.1 201 Created\r\n\r\n";
             }
         }
