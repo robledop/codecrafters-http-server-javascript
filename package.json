@@ -5,8 +5,7 @@
     "type": "module",
     "main": "main.js",
     "scripts": {
-        "dev": "node app/main.js",
-        "test": "curl -s http://localhost:4221"
+        "dev": "node app/main.js"
     },
     "keywords": [
         "build-your-own-x"
