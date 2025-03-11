@@ -3,7 +3,6 @@ import {createServer} from "net";
 const server = createServer((socket) => {
     socket.on("close", () => {
         socket.end();
-        socket.close();
     });
 
     socket.on("error", (err) => {
@@ -28,12 +27,9 @@ const server = createServer((socket) => {
             const message = path.substring(6);
             response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
         } else if (path === "/user-agent") {
-            lines.forEach((line) => {
-                if (line.startsWith("User-Agent: ")) {
-                    const userAgent = line.substring(12);
-                    response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`;
-                }
-            })
+            const userAgentLine = lines.find(x => x.startsWith("User-Agent: "));
+            const userAgent = userAgentLine.substring(12);
+            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${userAgent.length}\r\n\r\n${userAgent}`;
 
         } else {
             response = "HTTP/1.1 404 Not Found\r\n\r\n";
