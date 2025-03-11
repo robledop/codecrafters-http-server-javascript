@@ -14,16 +14,17 @@ const server = createServer((socket) => {
 
         console.log(`METHOD: ${method}, PATH: ${path}, PROTOCOL: ${protocol}`);
 
+        let response;
         if (path === "/") {
-            socket.write("HTTP/1.1 200 OK\r\n\r\n");
+            response = "HTTP/1.1 200 OK\r\n\r\n";
         } else if (path.startsWith("/echo/")) {
             const message = path.substring(6);
-            const response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
-
-            socket.write(response);
+            response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
         } else {
-            socket.write("HTTP/1.1 404 Not Found\r\n\r\n");
+            response = "HTTP/1.1 404 Not Found\r\n\r\n";
         }
+        
+        socket.write(response);
     });
 });
 
