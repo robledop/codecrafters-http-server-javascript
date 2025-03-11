@@ -36,7 +36,17 @@ const server = createServer((socket) => {
                 response = "HTTP/1.1 200 OK\r\n\r\n";
             } else if (path.startsWith("/echo/")) {
                 const message = path.substring(6);
-                response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
+                const acceptEncodingLine = lines.find(x => x.startsWith("Accept-Encoding: "));
+                if (acceptEncodingLine) {
+                    const acceptEncoding = acceptEncodingLine.substring(17);
+                    if (acceptEncoding === "gzip") {
+                        response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Encoding: gzip\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
+                    } else {
+                        response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
+                    }
+                }else{
+                    response = `HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: ${message.length}\r\n\r\n${message}`;
+                }
             } else if (path === "/user-agent") {
                 const userAgentLine = lines.find(x => x.startsWith("User-Agent: "));
                 const userAgent = userAgentLine.substring(12);
